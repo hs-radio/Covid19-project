@@ -80,31 +80,95 @@ def plot_cases_deaths_by_country(tb1, country, plot_days=None):
 
 
 
+
+# find the cases on each day for a country. 
+# method = 0: If there are no cases check the last 7 days for a non-zero value.
+def country_cases_each_day(date, tb_date, tb1, method):
+
+    # Filter out countries with "World", "countries", or "North America" in the name
+    country_cases = {
+        country: cases for country, cases in zip(tb_date.index.get_level_values('country'), tb_date['new_cases'])
+        if not any(exclude in country.lower() for exclude in ["world", "countries", "north america", "europe", "european", "asia", "africa"])
+    }
+
+    # Method == 0: is there a nonzero value in the last six days.
+    if method == 0:
+        # Convert the date to a pandas datetime object
+        date = pd.to_datetime(date)
+
+        # Iterate over all countries and check for zero cases
+        for country, cases in country_cases.items():
+            
+            # Check if the cases are <NA>, and if so, set it to 0
+            if isinstance(cases, pd._libs.missing.NAType):
+                cases = 0  # Set cases to 0 if it is <NA>
+            
+            if cases == 0:
+                found_nonzero = False
+                # Check the previous six days for non-zero values
+                for i in range(1, 7):  # Look at the previous 6 days
+                    prev_day = date - pd.Timedelta(days=i)
+                    tb_prev_day = tb1.xs(prev_day, level='date')
+                    prev_day_cases = tb_prev_day.loc[tb_prev_day.index.get_level_values('country') == country, 'new_cases'].values
+                    
+                    if prev_day_cases.size > 0 and prev_day_cases[0] > 0:
+                        country_cases[country] = prev_day_cases[0]
+                        found_nonzero = True
+                        break
+                
+                # If no non-zero case is found in the previous 6 days, leave as zero
+                if not found_nonzero:
+                    country_cases[country] = 0
+
+    return country_cases
+    
+
+
+
 # Function to plot covid cases as circles on the world map, for a specific date
-def plot_world_map_with_circles(fig, ax, tb1, world, date, show_plot = False):
+def plot_world_map_with_circles(fig, ax, tb1, world, date, num_show_name, show_plot = False):
     
     # Filter data for the specific date
     tb_date = tb1.xs(date, level='date')  # Use the date from the MultiIndex
 
-    # Create a dictionary of country name to number of cases for that date
-    country_cases = dict(zip(tb_date.index.get_level_values('country'), tb_date['new_cases']))
+    # get the formatted country cases
+    method = 0
+    country_cases = country_cases_each_day(date, tb_date, tb1, method)
+
+    # # # TESTING
+    # us_cases = country_cases.get("United States", None)  # Safely get cases for the US
+    # if us_cases is not None:
+    #     print(f"COVID-19 cases in the United States on {date}: {us_cases}")
+    # else:
+    #     print(f"No data available for the United States on {date}")
 
     # Create a GeoDataFrame for plotting the world map
     world.plot(ax=ax, color='lightgray')
 
     # Add circles to represent the number of cases in each country
     for country, cases in country_cases.items():
-        # Check if the cases are <NA>, and if so, set it to 0
-        if isinstance(cases, pd._libs.missing.NAType):
-            cases = 0  # Set cases to 0 if it is <NA>
-            
+    
         try:
             # Get the centroid of the country
+            if country == 'United States':
+                country = 'United States of America'
             country_geom = world[world['ADMIN'] == country].geometry.iloc[0]  
             country_centroid = country_geom.centroid
 
             # Create a circle at the centroid location with size based on cases
-            ax.scatter(country_centroid.x, country_centroid.y, s=cases / 100, color='red', alpha=0.5)
+            ax.scatter(country_centroid.x, country_centroid.y, s=cases / 250, color='red', alpha=0.5)
+
+            # TESTING
+            if country == "United States":
+                print(cases)
+                # print(country_centroid.x, country_centroid.y)
+
+            # Add the country's name above the circle if cases exceed num_show_name
+            if cases > num_show_name:
+                # Adjust the y-position slightly above the circle's centroid based on its size
+                circle_radius = cases / 250
+                ax.text(country_centroid.x, country_centroid.y + (circle_radius / 100), country, fontsize=8, ha='center', color='black')
+
         except IndexError:
             continue  # In case a country is missing from the shapefile
 
@@ -114,13 +178,12 @@ def plot_world_map_with_circles(fig, ax, tb1, world, date, show_plot = False):
     if show_plot:
         plt.show()  # Conditionally show the plot if show_plot is True
 
+
+
 # Create gif of cases by country on the world map each day without saving PNGs
-def create_world_map_cases_animation(fig, ax, tb1, world, output_file):
-    # Get the minimum and maximum dates from the 'date' level of the MultiIndex
-    # start_date = tb1.index.get_level_values('date').min()
-    # end_date = tb1.index.get_level_values('date').max() # TESTING
-    start_date = pd.to_datetime('2022-01-01')
-    end_date = pd.to_datetime('2022-02-1')
+def create_world_map_cases_animation(fig, ax, tb1, world, output_file,start_date, end_date, num_show_name):
+
+    # dates to make gif through
     dates = pd.date_range(start=start_date, end=end_date)
 
     # Prepare a list to store frames
@@ -129,7 +192,7 @@ def create_world_map_cases_animation(fig, ax, tb1, world, output_file):
     # Generate frames for each date
     for date in tqdm(dates, desc="Processing dates", unit="date"):
         ax.clear()  # Clear the axis for each frame
-        plot_world_map_with_circles(fig, ax, tb1, world, date)  # Plot the world map for the date
+        plot_world_map_with_circles(fig, ax, tb1, world, date, num_show_name)  # Plot the world map for the date
     
         # Save the current frame to a BytesIO buffer
         buf = io.BytesIO()
