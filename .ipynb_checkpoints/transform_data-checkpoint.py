@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+
+
 # there are clear errors in the data, this function fixes.
 # anomalous non-zeros: when the vaccinations or boosters have periods of non-zero values before any vaccines were administered.
 def specific_corrections(df_ppl_vac_p100, df_boosters_p100):
@@ -22,8 +24,6 @@ def specific_corrections(df_ppl_vac_p100, df_boosters_p100):
     return df_ppl_vac_p100, df_boosters_p100
 
 
-    
-
 
 # process data into a useable form.
 def process_data_by_country(tb, features):
@@ -43,6 +43,8 @@ def process_data_by_country(tb, features):
         
         # Drop non-countries from the pivoted data
         pivoted_data[feature] = pivoted_data[feature].drop(columns=non_countries, errors='ignore')
+
+        # pivoted_data[feature] = pivoted_data[feature].reset_index().melt(id_vars='date', var_name='country', value_name='new_cases')
 
         # # change the datetime to the pandas formate
         # pivoted_data[feature]['date'] = pd.to_datetime(pivoted_data[feature]["date"])
