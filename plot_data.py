@@ -14,6 +14,61 @@ from datetime import datetime
 import os
 from tqdm import tqdm
 
+# Plot a country's case and death data.
+def plot_country_cd(country, df_cases, df_deaths):
+    # Create figure and axis
+    fig, ax2 = plt.subplots(figsize=(10, 6))  # Optional: Adjust figure size for better readability
+    
+    # Plot the daily cases on the left-hand side axis
+    line1, = ax2.plot(df_cases[country], label="Daily new cases", color='r')  
+    ax2.set_xlabel("Date")
+    ax2.set_ylabel("Daily new cases", color='r')  # Label for the left-hand axis
+    
+    # Create a second y-axis for deaths on the right-hand side
+    ax1 = ax2.twinx()
+    line2, = ax1.plot(df_deaths[country], label="Daily deaths", color='b')
+    ax1.set_ylabel("Daily deaths")
+
+    # Collect line objects and labels from both axes
+    lines = [line1, line2]
+    labels = [line.get_label() for line in lines]
+
+    # Add a single legend
+    ax2.legend(lines, labels, loc="upper left")
+
+    # Display the plot
+    plt.show()
+
+
+# plot a countries vaccination data.
+def plot_country_vac(country, df_daily_vac_p100, df_ppl_vac_p100, df_boosters_p100):
+    # Create figure and axis
+    fig, ax2 = plt.subplots(figsize=(10, 6))  # Optional: Adjust figure size for better readability
+    
+    # Plot the daily vaccinations on the left-hand side axis
+    line1, = ax2.plot(df_daily_vac_p100[country], label="Daily Vaccinations per 100", color='r')  
+    ax2.set_xlabel("Date")
+    ax2.set_ylabel("Daily Vaccinations per 100", color='r')  
+    
+    # Create a second y-axis for people vaccinated and boosters on the right-hand side
+    ax1 = ax2.twinx()
+    line2, = ax1.plot(df_ppl_vac_p100[country], label="People Vaccinated (%)", color='b')
+    line3, = ax1.plot(df_boosters_p100[country], label="Boosters (%)", color='g')
+    ax1.set_ylabel("Percentage of Population (%)")
+    
+    # Collect line objects and labels from both axes
+    lines = [line1, line2, line3]
+    labels = [line.get_label() for line in lines]
+
+    # Add a single legend
+    ax2.legend(lines, labels, loc="upper left")
+
+    # Display the plot
+    plt.show()
+
+
+
+
 
 # display catalgoue information.
 def disp_catalogue_info(cat):
@@ -29,14 +84,14 @@ def disp_catalogue_info(cat):
 
 
 # plot the new cases and deaths each day, specify the country as a string, if not plot_days is given then the maximum time of data is used.
-def plot_cases_deaths_by_country(tb1, country, plot_days=None):
+def plot_cases_deaths_by_country(tb_country_cases_deaths, country, plot_days=None):
     # Plotting parameters
     marker_size = 1
     col1 = '#6fa3f7'  # soft blue
     col2 = '#f08484'  # dark coral
     
     # Select the specified country using .loc
-    country_data = tb1.loc[country]
+    country_data = tb_country_cases_deaths.loc[country]
     
     # Extract date, new_cases, and new_deaths
     dates = country_data.index
@@ -83,7 +138,7 @@ def plot_cases_deaths_by_country(tb1, country, plot_days=None):
 
 # find the cases on each day for a country. 
 # method = 0: If there are no cases check the last 7 days for a non-zero value.
-def country_cases_each_day(date, tb_date, tb1, method):
+def country_cases_each_day(date, tb_date, tb_country_cases_deaths, method):
 
     # Filter out countries with "World", "countries", or "North America" in the name
     country_cases = {
@@ -108,7 +163,7 @@ def country_cases_each_day(date, tb_date, tb1, method):
                 # Check the previous six days for non-zero values
                 for i in range(1, 7):  # Look at the previous 6 days
                     prev_day = date - pd.Timedelta(days=i)
-                    tb_prev_day = tb1.xs(prev_day, level='date')
+                    tb_prev_day = tb_country_cases_deaths.xs(prev_day, level='date')
                     prev_day_cases = tb_prev_day.loc[tb_prev_day.index.get_level_values('country') == country, 'new_cases'].values
                     
                     if prev_day_cases.size > 0 and prev_day_cases[0] > 0:
@@ -126,14 +181,14 @@ def country_cases_each_day(date, tb_date, tb1, method):
 
 
 # Function to plot covid cases as circles on the world map, for a specific date
-def plot_world_map_with_circles(fig, ax, tb1, world, date, num_show_name, show_plot = False):
+def plot_world_map_with_circles(fig, ax, tb_country_cases_deaths, world, date, num_show_name, show_plot = False):
     
     # Filter data for the specific date
-    tb_date = tb1.xs(date, level='date')  # Use the date from the MultiIndex
+    tb_date = tb_country_cases_deaths.xs(date, level='date')  # Use the date from the MultiIndex
 
     # get the formatted country cases
     method = 0
-    country_cases = country_cases_each_day(date, tb_date, tb1, method)
+    country_cases = country_cases_each_day(date, tb_date, tb_country_cases_deaths, method)
 
     # # # TESTING
     # us_cases = country_cases.get("United States", None)  # Safely get cases for the US
@@ -181,7 +236,7 @@ def plot_world_map_with_circles(fig, ax, tb1, world, date, num_show_name, show_p
 
 
 # Create gif of cases by country on the world map each day without saving PNGs
-def create_world_map_cases_animation(fig, ax, tb1, world, output_file,start_date, end_date, num_show_name):
+def create_world_map_cases_animation(fig, ax, tb_country_cases_deaths, world, output_file,start_date, end_date, num_show_name):
 
     # dates to make gif through
     dates = pd.date_range(start=start_date, end=end_date)
@@ -192,7 +247,7 @@ def create_world_map_cases_animation(fig, ax, tb1, world, output_file,start_date
     # Generate frames for each date
     for date in tqdm(dates, desc="Processing dates", unit="date"):
         ax.clear()  # Clear the axis for each frame
-        plot_world_map_with_circles(fig, ax, tb1, world, date, num_show_name)  # Plot the world map for the date
+        plot_world_map_with_circles(fig, ax, tb_country_cases_deaths, world, date, num_show_name)  # Plot the world map for the date
     
         # Save the current frame to a BytesIO buffer
         buf = io.BytesIO()
