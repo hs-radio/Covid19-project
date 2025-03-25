@@ -14,19 +14,25 @@ from datetime import datetime
 import os
 from tqdm import tqdm
 
-# Plot a country's case and death data.
-def plot_country_cd(country, df_cases, df_deaths):
+# Plot a country's case and death data with dates
+def plot_country_cd(country, df):
+    # Ensure 'date' is in datetime format
+    df['date'] = pd.to_datetime(df['date'])
+    
+    # Filter the data for the selected country
+    country_data = df[df['country'] == country]
+
     # Create figure and axis
     fig, ax2 = plt.subplots(figsize=(10, 6))  # Optional: Adjust figure size for better readability
     
     # Plot the daily cases on the left-hand side axis
-    line1, = ax2.plot(df_cases[country], label="Daily new cases", color='r')  
+    line1, = ax2.plot(country_data['date'], country_data['new_cases'], label="Daily new cases", color='r')  
     ax2.set_xlabel("Date")
     ax2.set_ylabel("Daily new cases", color='r')  # Label for the left-hand axis
     
     # Create a second y-axis for deaths on the right-hand side
     ax1 = ax2.twinx()
-    line2, = ax1.plot(df_deaths[country], label="Daily deaths", color='b')
+    line2, = ax1.plot(country_data['date'], country_data['new_deaths'], label="Daily deaths", color='b')
     ax1.set_ylabel("Daily deaths")
 
     # Collect line objects and labels from both axes
@@ -41,19 +47,19 @@ def plot_country_cd(country, df_cases, df_deaths):
 
 
 # plot a countries vaccination data.
-def plot_country_vac(country, df_daily_vac_p100, df_ppl_vac_p100, df_boosters_p100):
+def plot_country_vac(country, df):
     # Create figure and axis
     fig, ax2 = plt.subplots(figsize=(10, 6))  # Optional: Adjust figure size for better readability
     
     # Plot the daily vaccinations on the left-hand side axis
-    line1, = ax2.plot(df_daily_vac_p100[country], label="Daily Vaccinations per 100", color='r')  
+    line1, = ax2.plot(df[df['country'] == country][["daily_people_vaccinated_smoothed_per_hundred"]], label="Daily Vaccinations per 100", color='r')  
     ax2.set_xlabel("Date")
     ax2.set_ylabel("Daily Vaccinations per 100", color='r')  
     
     # Create a second y-axis for people vaccinated and boosters on the right-hand side
     ax1 = ax2.twinx()
-    line2, = ax1.plot(df_ppl_vac_p100[country], label="People Vaccinated (%)", color='b')
-    line3, = ax1.plot(df_boosters_p100[country], label="Boosters (%)", color='g')
+    line2, = ax1.plot(df[df['country'] == country][["people_fully_vaccinated_per_hundred"]], label="People Vaccinated (%)", color='b')
+    line3, = ax1.plot(df[df['country'] == country][["total_boosters_per_hundred"]], label="Boosters (%)", color='g')
     ax1.set_ylabel("Percentage of Population (%)")
     
     # Collect line objects and labels from both axes

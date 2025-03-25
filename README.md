@@ -2,6 +2,14 @@
 
 This project offers a set of functions designed to help visualize and analyze COVID-19 data. The functions allow for plotting daily new cases and deaths by country, visualizing the global spread of COVID-19 on a world map, and creating an animated world map that shows the progression of cases over time. The data used in these analyses can be easily loaded from a catalog, and the results can be generated as high-quality visualizations that can either be displayed or saved. Below are some example use cases of the available functions, which demonstrate how to load data, generate plots, and create animations.
 
+There was significant errors in some country's data drawn from the owid database. I have checked every country's data compared to https://www.worldometers.info/coronavirus/country/ to ensure that the data is within the ball park of correct. 
+
+Some country's data has the cumulative new cases for the week recorded on one day and the other six days as zero e.g. Australia. To fix this we wrote a method that either fills zeros with average or attempsts to scale it correctly.
+
+There are other problems. Governments will often not report and then change their classifications, particualy of what counts as a death, and suddenly report a huge influx e.g. Aruba, Bolivia. No solution is done yet. Some 
+
+Then there is anomalous spikes that cannot be accounted for. For instance on one day in 2022, Chile reports over 10k deaths, its previous highest was ~750.
+
 There is also a set of functions that account for a ML model that predicts how many infections one would expect.
 
 *** things to add
