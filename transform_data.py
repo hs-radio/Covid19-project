@@ -159,10 +159,7 @@ def correct_weekly_reporting_in_daily(df):
 
 
 
-        
-
-
-
+    
 
 
 # List of non-countries that appear in data.

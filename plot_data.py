@@ -46,22 +46,36 @@ def plot_country_cd(country, df):
     plt.show()
 
 
-# plot a countries vaccination data.
+# Plot a country's vaccination data
 def plot_country_vac(country, df):
-    # Create figure and axis
-    fig, ax2 = plt.subplots(figsize=(10, 6))  # Optional: Adjust figure size for better readability
+    # Ensure 'date' is in datetime format
+    df['date'] = pd.to_datetime(df['date'])
     
+    # Filter data for the given country
+    df_country = df[df['country'] == country]
+
+    # Create figure and axis
+    fig, ax2 = plt.subplots(figsize=(10, 6))  # Adjust figure size for better readability
+
     # Plot the daily vaccinations on the left-hand side axis
-    line1, = ax2.plot(df[df['country'] == country][["daily_people_vaccinated_smoothed_per_hundred"]], label="Daily Vaccinations per 100", color='r')  
+    line1, = ax2.plot(df_country["date"], df_country["daily_people_vaccinated_smoothed_per_hundred"], 
+                      label="Daily Vaccinations per 100", color='r')  
     ax2.set_xlabel("Date")
     ax2.set_ylabel("Daily Vaccinations per 100", color='r')  
-    
+    ax2.tick_params(axis='y', labelcolor='r')
+
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45)
+
     # Create a second y-axis for people vaccinated and boosters on the right-hand side
     ax1 = ax2.twinx()
-    line2, = ax1.plot(df[df['country'] == country][["people_fully_vaccinated_per_hundred"]], label="People Vaccinated (%)", color='b')
-    line3, = ax1.plot(df[df['country'] == country][["total_boosters_per_hundred"]], label="Boosters (%)", color='g')
+    line2, = ax1.plot(df_country["date"], df_country["people_fully_vaccinated_per_hundred"], 
+                      label="People Vaccinated (%)", color='b')
+    line3, = ax1.plot(df_country["date"], df_country["total_boosters_per_hundred"], 
+                      label="Boosters (%)", color='g')
     ax1.set_ylabel("Percentage of Population (%)")
-    
+    ax1.tick_params(axis='y', labelcolor='black')
+
     # Collect line objects and labels from both axes
     lines = [line1, line2, line3]
     labels = [line.get_label() for line in lines]
@@ -89,59 +103,12 @@ def disp_catalogue_info(cat):
 
 
 
-# plot the new cases and deaths each day, specify the country as a string, if not plot_days is given then the maximum time of data is used.
-def plot_cases_deaths_by_country(tb_country_cases_deaths, country, plot_days=None):
-    # Plotting parameters
-    marker_size = 1
-    col1 = '#6fa3f7'  # soft blue
-    col2 = '#f08484'  # dark coral
-    
-    # Select the specified country using .loc
-    country_data = tb_country_cases_deaths.loc[country]
-    
-    # Extract date, new_cases, and new_deaths
-    dates = country_data.index
-    new_cases = country_data['new_cases']
-    new_deaths = country_data['new_deaths']
-    
-    # Set plot_days to maximum if not provided
-    if plot_days is None:
-        plot_days = len(country_data)
-    
-    # Filter data for the last 'plot_days' days
-    end_date = dates[-1]  # Get the last date in the dataset
-    start_date = pd.to_datetime(end_date) - pd.Timedelta(days=plot_days)
-    
-    # Filter the data for the last 'plot_days' days
-    filtered_data = country_data[country_data.index >= start_date]
-    
-    # Create the figure and the first axis (for new cases)
-    fig, ax1 = plt.subplots(figsize=(12, 6))
-    
-    # Plot new cases on the left y-axis
-    ax1.plot(filtered_data.index, filtered_data['new_cases'], marker='o', linestyle='-', markersize=marker_size, color=col1, label="New Cases")
-    ax1.set_xlabel('Date')
-    ax1.set_ylabel('New Cases', color=col1)
-    ax1.tick_params(axis='y', labelcolor=col1)
-    
-    # Create a second y-axis (for new deaths)
-    ax2 = ax1.twinx()
-    
-    # Plot new deaths on the right y-axis
-    ax2.plot(filtered_data.index, filtered_data['new_deaths'], marker='o', linestyle='-', markersize=marker_size, color=col2, label="New Deaths")
-    ax2.set_ylabel('New Deaths', color=col2)
-    ax2.tick_params(axis='y', labelcolor=col2)
-    
-    # Formatting
-    plt.title(f'COVID-19 New Cases and Deaths in {country} Over the Last {plot_days} Days')
-    plt.xticks(rotation=45)
-    ax1.grid(True, linestyle='--', alpha=0.6)
-    
-    plt.show()
 
 
 
 
+# functions related to making the gif
+# ------------------------------------
 # find the cases on each day for a country. 
 # method = 0: If there are no cases check the last 7 days for a non-zero value.
 def country_cases_each_day(date, tb_date, tb_country_cases_deaths, method):
