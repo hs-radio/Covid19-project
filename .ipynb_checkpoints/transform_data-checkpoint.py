@@ -19,7 +19,7 @@ def process_covid_data(tb_country_cases_deaths, tb_country_vac):
 
     # Cases and deaths data.
     #--------------------------------
-    features_cd = ["new_cases", "new_deaths"]
+    features_cd = ["new_cases", "new_deaths", "total_deaths_per_million"]
     df_cd = basic_processing(tb_country_cases_deaths, features_cd)
     df_cd = correct_weekly_reporting_in_daily(df_cd)  # correct weekly reporting in the daily column.
     df_cd = correct_anomalous_spike(df_cd) # remove anomalous spike
@@ -159,10 +159,7 @@ def correct_weekly_reporting_in_daily(df):
 
 
 
-        
-
-
-
+    
 
 
 # List of non-countries that appear in data.

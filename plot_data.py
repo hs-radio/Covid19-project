@@ -26,13 +26,13 @@ def plot_country_cd(country, df):
     fig, ax2 = plt.subplots(figsize=(10, 6))  # Optional: Adjust figure size for better readability
     
     # Plot the daily cases on the left-hand side axis
-    line1, = ax2.plot(country_data['date'], country_data['new_cases'], label="Daily new cases", color='r')  
+    line1, = ax2.plot(country_data['date'], country_data['new_cases'], label="Daily new cases", color='b')  
     ax2.set_xlabel("Date")
-    ax2.set_ylabel("Daily new cases", color='r')  # Label for the left-hand axis
+    ax2.set_ylabel("Daily new cases")  # Label for the left-hand axis
     
     # Create a second y-axis for deaths on the right-hand side
     ax1 = ax2.twinx()
-    line2, = ax1.plot(country_data['date'], country_data['new_deaths'], label="Daily deaths", color='b')
+    line2, = ax1.plot(country_data['date'], country_data['new_deaths'], label="Daily deaths", color='r')
     ax1.set_ylabel("Daily deaths")
 
     # Collect line objects and labels from both axes
