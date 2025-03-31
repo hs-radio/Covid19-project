@@ -42,14 +42,16 @@ The next figure demonstrates the date each country reached 80% vaccination and t
 
 <img src="cd_vax.png" width="600" />
 
-It's fascinating to observe that countries which vaccinated their populations quickly didn't necessarily have lower death rates. In fact, some early-vaccinated countries (e.g., the US) had high death rates. On the other hand, countries that vaccinated later often saw lower death rates. This is likely due to the impact of lockdowns, as countries like China and Vietnam implemented long lockdowns, even though they took longer to vaccinate their populations.
+It's fascinating to observe that countries which vaccinated their populations quickly didn't necessarily have lower death rates. In fact, some early-vaccinated countries (e.g. the US) had high death rates. On the other hand, countries that vaccinated later often saw lower death rates, like China and Vietnam. This is likely due to the impact of lockdowns.
 
 <br>
 <br>
 
 ### 5. Correlation Between Cases and Deaths at Different Vaccination Rates
 
-Finally, we analyze the correlation between cases and deaths at low (<10%) and high (>90%) vaccination rates. By identifying the date ranges when each country was in these two regimes, we compute the lagged correlations between cases and deaths, considering the delay between infection and death. For each regime, we calculate the maximum lagged correlation for several countries. The results are shown below:
+Finally, we analyze the correlation between cases and deaths at low (<10%) and high (>90%) vaccination rates. By identifying the date ranges when each country was in these two regimes, we compute the lagged correlations between cases and deaths. The lag is necessary as we expect some period of time between infection and death. 
+
+For several countries, we calculate the maximum lagged correlation in the low and high vaccination regimes. The results are shown below:
 
 <img src="correlation_data.png" width="600" />
 
