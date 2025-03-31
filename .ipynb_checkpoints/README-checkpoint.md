@@ -1,68 +1,56 @@
-# Introduction
+# COVID-19 Data Visualization and Analysis
 
-This project offers a set of functions designed to help visualize and analyze COVID-19 data. The functions allow for plotting daily new cases and deaths by country, visualizing the global spread of COVID-19 on a world map, and creating an animated world map that shows the progression of cases over time. The data used in these analyses can be easily loaded from a catalog, and the results can be generated as high-quality visualizations that can either be displayed or saved. Below are some example use cases of the available functions, which demonstrate how to load data, generate plots, and create animations.
+This project provides a set of functions for visualizing and analyzing COVID-19 data, sourced from the *Our World in Data* COVID-19 databases. It includes various functions for data visualization and computing correlations, enabling users to recreate and analyze COVID-19 data for different date ranges and countries through the provided Jupyter notebook (`main`).
 
-There was significant errors in some country's data drawn from the owid database. I have checked every country's data compared to https://www.worldometers.info/coronavirus/country/ to ensure that the data is within the ball park of correct. 
+### Data Processing
 
-Some country's data has the cumulative new cases for the week recorded on one day and the other six days as zero. To fix this we ...
+The data required significant preprocessing before visualization and correlation analysis. For instance, many countries reported zero new COVID-19 cases throughout the week, only to post cumulative cases on Sundays or Mondays. To address this, I developed methods to extrapolate daily cases from these cumulative reports.
 
-There are other problems. Governments will often not report and then change their classifications, particualy of what counts as a death, and suddenly report a huge influx e.g. Aruba.
+Another issue arises from governments' reporting practices. Often, after reclassification of cases or deaths, a sudden spike in reported deaths occurs when the additional deaths are posted on one day. This had to be handled carefully to ensure that the correlations were not significantly affected.
 
-There is also a set of functions that account for a ML model that predicts how many infections one would expect.
+### Key Findings
 
-*** things to add
-- data comes from many sources, I need to select relevant parts and combine others.
-- remove not correct data e.g. country = "upper midl incomd country"
-- lots of NA when vax or boosters have not been administered. some need to be set zero, others need to be set to their last value
-- govs dont post any booster data and then all at once.
+Once these challenges were addressed, several interesting results emerged. Below, we present our findings and exhibit the code used in the analysis.
 
-## Variables
+### 1. Chile's Daily Cases and Deaths Data
 
-- `tb1 = cat.iloc[1].load()`:  
-  This variable loads the first dataset from the catalog, which is commonly used in the functions.
+The first figure below shows the daily COVID-19 cases and deaths for Chile:
 
+<img src="Chile_cases_deaths_data.png" width="600" />
 
-## Functions in "transform_data.py"
-- `specific_corrections(df_ppl_vac_p100, df_boosters_p100)`  
-  Corrects anomalous non-zero values in vaccination and booster data, such as periods with non-zero values before any vaccines were administered. It checks for decreases in the vaccination and booster data and sets the preceding values to zero.  
-  Example: `specific_corrections(df_ppl_vac_p100, df_boosters_p100)`
+### 2. Vaccination Data for Chile
 
-- `process_data_by_country(tb, features)`  
-  Processes raw data into a usable form by pivoting it into time series for each feature. It handles missing data by forward filling and removes non-country data points (e.g., continents, regions). Returns separate DataFrames for each feature.  
-  Example: `process_data_by_country(tb, ['daily_vac', 'people_vac', 'boosters'])`
+Next, we present the vaccination data for Chile:
 
-- `non_countries`  
-  A list of non-country entities (e.g., regions, continents, and special territories) to be excluded from the data processing.  
-  Example: Excludes entities like 'Africa', 'Asia', 'World', etc.
+<img src="Chile_vaccination_data.png" width="600" />
 
-  
+<br>
+<br>
 
-## Functions in "plot_data.py"
+### 3. COVID-19 Cases Visualization Across Countries
 
-- `disp_catalogue_info(cat)`:  
-  Displays information about the datasets available in the catalog, including the names and formats of each dataset.
+By extracting the data for each country over a range of dates, we can generate a GIF of the world map and show the new cases for each day. In this visualization, we plot a circle at the center of each country for each day, with the circle size proportional to the number of new cases. Countries with more than 40,000 new cases a day have their names displayed above the circle. The figure below shows this for January 2022:
 
-- `plot_cases_deaths_by_country(tb1, country, None)`:  
-  Plots the daily new COVID-19 cases and deaths over time for the specified country. If no specific number of days is provided, it defaults to using the maximum available range.  
-  Example: `country = 'Austria'`
+<img src="cases_animation.gif" width="600" />
 
-- `world_fig = plot_world_map_with_circles(fig, ax, tb1, world, date, num_show_name, show_plot = False)`:  
-  Plots a world map with circles representing COVID-19 cases for a specific date.
-  `num_show_name` is the number of cases a country must have for its name to be printed above it circle. 
-  Example: `date = "2022-01-01"`
+<br>
+<br>
 
-- `create_world_map_cases_animation(tb1, world, output_file)`:  
-  Generates an animated GIF showing the progression of COVID-19 cases around the world over time and saves the animation to the specified output file.  
-  Example: `output_file = 'covid_cases_animation.gif'`
+### 4. Vaccination Rates and Deaths
 
-- `country_cases_each_day(date)`:  
-  Many countries would only report their cases each week. This function provides methods for estimating the cases each day.
-  Method == 0: looks at the last six days and sets a country's cases to the first non-zero value found. This assumes that the cases were reported weekly.
+The next figure demonstrates the date each country reached 80% vaccination and the corresponding total deaths for each country:
 
-  - `plot_country_cd(country, df_cases, df_deaths)`  
-  Plots daily new cases (left axis) and daily deaths (right axis) for a specified country, with a combined legend.  
-  Example: `plot_country_cd('Brazil', df_cases, df_deaths)`
+<img src="cd_vax.png" width="600" />
 
-- `plot_country_vac(country, df_daily_vac_p100, df_ppl_vac_p100, df_boosters_p100)`  
-  Plots daily vaccinations, percentage of people vaccinated, and boosters for a specified country. Daily vaccinations are on the left axis, while percentages of people vaccinated and boosters are on the right.  
-  Example: `plot_country_vac('India', df_daily_vac_p100, df_ppl_vac_p100, df_boosters_p100)`
+It's fascinating to observe that countries which vaccinated their populations quickly didn't necessarily have lower death rates. In fact, some early-vaccinated countries (e.g., the US) had high death rates. On the other hand, countries that vaccinated later often saw lower death rates. This is likely due to the impact of lockdowns, as countries like China and Vietnam implemented long lockdowns, even though they took longer to vaccinate their populations.
+
+<br>
+<br>
+
+### 5. Correlation Between Cases and Deaths at Different Vaccination Rates
+
+Finally, we analyze the correlation between cases and deaths at low (<10%) and high (>90%) vaccination rates. By identifying the date ranges when each country was in these two regimes, we compute the lagged correlations between cases and deaths, considering the delay between infection and death. For each regime, we calculate the maximum lagged correlation for several countries. The results are shown below:
+
+<img src="correlation_data.png" width="600" />
+
+This analysis demonstrates the effectiveness of vaccines. In nearly every country, higher vaccination rates lead to a weaker correlation between cases and deaths. In other words, the more vaccinated a country is, the less likely new cases will lead to deaths.
